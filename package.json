@@ -21,8 +21,10 @@
   "homepage": "https://github.com/claudias-hub/movie_api#readme",
   "dependencies": {
     "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
     "express": "^4.21.2",
     "lodash": "^4.17.21",
+    "mongoose": "^8.13.0",
     "morgan": "^1.10.0"
   }
 }
