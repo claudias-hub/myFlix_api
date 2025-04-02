@@ -1,15 +1,15 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const { Movie, User } = require("./models"); 
+const { Movie, User } = require("./models");
 
-const mongoURI = 'mongodb://127.0.0.1:27017/movieDB';  
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log("MongoDB connected"))
-    .catch((err) => console.log("MongoDB connection error:", err));
-
+const mongoURI = "mongodb://127.0.0.1:27017/movieDB";
+mongoose
+  .connect(mongoURI)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 const app = express();
 const port = 8080; // Change if needed
@@ -18,176 +18,177 @@ app.use(bodyParser.json());
 app.use(express.static("public")); // Serve static files /documentation will work automatically
 app.use(morgan("common")); // "common" muestra logs básicos
 
-
 // Homepage
 app.get("/", (req, res) => {
-    res.send("Welcome to the Movie API!");
+  res.send("Welcome to the Movie API!");
 });
- 
+
 // GET All Movies (from MongoDB)
 app.get("/movies", async (req, res) => {
-    try {
-        const movies = await Movie.find(); // Get all movies from MongoDB
-        res.json(movies);
-    } catch (error) {
-        res.status(500).send("Error retrieving movies.");
-    }
+  try {
+    const movies = await Movie.find(); // Fetch all movies
+    res.json(movies);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET a single movie by title
 app.get("/movies/:title", async (req, res) => {
-    try {
-        const movie = await Movie.findOne({ title: req.params.title }); // Find movie by title
-        if (movie) {
-            res.json(movie);
-        } else {
-            res.status(404).send("Movie not found.");
-        }
-    } catch (error) {
-        res.status(500).send("Error retrieving movie.");
-    }
+  try {
+    const movie = await Movie.findOne({ title: req.params.title }); // Find movie by title
+    if (!movie) return res.status(404).json({ message: "Movie not found" });
+    res.json(movie);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-
 
 //  Get genre details by name
-app.get("/genres/:name", (req, res) => {
-    const moviesByGenre = topMovies.filter(m => m.genre.toLowerCase() === req.params.name.toLowerCase());
-    if (moviesByGenre.length > 0) {
-        res.json({ genre: req.params.name, movies: moviesByGenre });
-    } else {
-        res.status(404).send("Genre not found.");
-    }
+app.get("/genres/:name", async (req, res) => {
+  try {
+    console.log(`Looking for genre: ${req.params.name}`);
+    const movie = await Movie.findOne({ "genre.name": req.params.name });
+    console.log(`Found movie:`, movie);
+
+    if (!movie) return res.status(404).json({ message: "Genre not found" });
+
+    res.json(movie.genre);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
+app.get("/directors/:name", async (req, res) => {
+  try {
+    console.log(`Received request for director: ${req.params.name}`); // Debugging log
+    const movies = await Movie.find({ "director.name": req.params.name });
 
-//  Get director details by name
-app.get("/directors/:name", (req, res) => {
-    const moviesByDirector = topMovies.filter(m => m.director.toLowerCase() === req.params.name.toLowerCase());
-    if (moviesByDirector.length > 0) {
-        res.json({ director: req.params.name, movies: moviesByDirector });
-    } else {
-        res.status(404).send("Director not found.");
+    console.log(`MongoDB query result:`, movies); // Log what MongoDB returns
+
+    if (!movies || movies.length === 0) {
+      console.log(`Director ${req.params.name} not found in database.`);
+      return res.status(404).json({ message: "Director not found" });
     }
-});
 
+    res.json(movies);
+  } catch (err) {
+    console.error(`Error fetching director: ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Register a new user
 app.post("/users", async (req, res) => {
-    const { username, email, password } = req.body;
+  try {
+    const existingUser = await User.findOne({ username: req.body.username });
+    if (existingUser)
+      return res.status(400).json({ message: "Username already exists" });
 
-    if (!username || !email || !password) {
-        return res.status(400).send("All fields are required.");
-    }
-
-    try {
-        const newUser = new User({ username, email, password });
-        await newUser.save(); // Save new user to MongoDB
-        res.status(201).json({ message: "User registered successfully!", user: newUser });
-    } catch (error) {
-        res.status(500).send("Error registering user.");
-    }
+    const newUser = new User(req.body);
+    await newUser.save();
+    res.status(201).json(newUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-
 
 // Update user info
 app.put("/users/:username", async (req, res) => {
-    try {
-        const updatedUser = await User.findOneAndUpdate(
-            { username: req.params.username },
-            { $set: req.body },
-            { new: true }
-        );
-
-        if (!updatedUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        res.json({ message: `User ${req.params.username} has been updated.`, user: updatedUser });
-    } catch (error) {
-        res.status(500).json({ message: "Error updating user." });
-    }
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      { username: req.params.username },
+      { $set: req.body },
+      { new: true }
+    );
+    if (!updatedUser)
+      return res.status(404).json({ message: "User not found" });
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-
 // Add a movie to user's favorite list
-app.post("/users/:username/movies/:movieID", async (req, res) => {
-    const { username, movieID } = req.params;
+app.post('/users/:username/movies/:movieId', async (req, res) => {
+  try {
+      console.log('Received request to add movie to favorites');
+      console.log('Username:', req.params.username);
+      console.log('Movie ID:', req.params.movieId);
 
-    try {
-        // Find the user
-        const user = await User.findOne({ username });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+      const updatedUser = await User.findOneAndUpdate(
+          { username: req.params.username },
+          { $addToSet: { favoriteMovies: req.params.movieId } }, // Prevent duplicates
+          { new: true }
+      );
 
-        // Find the movie
-        const movie = await Movie.findOne({ title: movieID });
-        if (!movie) {
-            return res.status(404).json({ message: "Movie not found" });
-        }
+      if (!updatedUser) {
+          console.log('User not found');
+          return res.status(404).json({ message: 'User not found' });
+      }
 
-        // Add movie to user's favorites if it's not already in the list
-        if (!user.favorites.includes(movie.title)) {
-            user.favorites.push(movie.title);
-            await user.save(); // Save the updated user
-            return res.json({ message: `Movie "${movie.title}" added to ${username}'s favorites.` });
-        } else {
-            return res.json({ message: `Movie "${movie.title}" is already in ${username}'s favorites.` });
-        }
-    } catch (error) {
-        res.status(500).json({ message: "Error adding movie to favorites." });
-    }
+      console.log('Updated user:', updatedUser);
+      res.json(updatedUser);
+  } catch (err) {
+      console.error('Error updating user:', err);
+      res.status(500).json({ error: err.message });
+  }
 });
 
 
 // Remove a movie from user’s favorite list
-app.delete("/users/:username/movies/:movieID", async (req, res) => {
-    try {
-        const updatedUser = await User.findOneAndUpdate(
-            { username: req.params.username },
-            { $pull: { favorites: req.params.movieID } },
-            { new: true }
-        );
+app.delete("/users/:username/movies/:movieId", async (req, res) => {
+  try {
+    console.log("Deleting movie from favorites...");
+    console.log("Username:", req.params.username);
+    console.log("Movie ID:", req.params.movieId);
 
-        if (!updatedUser) {
-            return res.status(404).json({ message: "User not found or movie not in favorites." });
-        }
+    const movieId = new mongoose.Types.ObjectId(req.params.movieId); // Convert to ObjectId
 
-        res.json({ message: `Movie "${req.params.movieID}" removed from ${req.params.username}'s favorites.` });
-    } catch (error) {
-        res.status(500).json({ message: "Error removing movie from favorites." });
+    const updatedUser = await User.findOneAndUpdate(
+      { username: req.params.username },
+      { $pull: { favoriteMovies: movieId } }, // Pull using ObjectId
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      console.log("User not found");
+      return res.status(404).json({ message: "User not found" });
     }
+
+    console.log("Updated user:", updatedUser);
+    res.json(updatedUser);
+  } catch (err) {
+    console.error("Error deleting movie from favorites:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
-
-
 
 // Deregister a user
 app.delete("/users/:username", async (req, res) => {
-    try {
-        const deletedUser = await User.findOneAndDelete({ username: req.params.username });
-        if (!deletedUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        res.json({ message: `User ${req.params.username} has been removed.` });
-    } catch (error) {
-        res.status(500).json({ message: "Error deleting user." });
-    }
+  try {
+    const deletedUser = await User.findOneAndDelete({
+      username: req.params.username,
+    });
+    if (!deletedUser)
+      return res.status(404).json({ message: "User not found" });
+    res.json({ message: `User ${req.params.username} deleted` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-
 
 app.get("/documentation", (req, res) => {
-    res.sendFile(__dirname + "/public/documentation.html");
+  res.sendFile(__dirname + "/public/documentation.html");
 });
-
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send("Something went wrong! Please try again later.");
+  console.error(err.stack);
+  res.status(500).send("Something went wrong! Please try again later.");
 });
 
 // Iniciar servidor
 app.listen(port, () => {
-    console.log(`App is running on http://localhost:${port}`);
+  console.log(`App is running on http://localhost:${port}`);
 });
