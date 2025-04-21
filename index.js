@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
+const bcrypt = require('bcryptjs');
 
 const { Movie, User } = require("./models");
 
@@ -18,13 +19,18 @@ app.use(bodyParser.json());
 app.use(express.static("public")); // Serve static files /documentation will work automatically
 app.use(morgan("common")); // "common" muestra logs básicos
 
+let auth = require('./auth')(app);
+require('./passport');
+
+const passport = require('passport');
+
 // Homepage
 app.get("/", (req, res) => {
   res.send("Welcome to the Movie API!");
 });
 
 // GET All Movies (from MongoDB)
-app.get("/movies", async (req, res) => {
+app.get("/movies", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const movies = await Movie.find(); // Fetch all movies
     res.json(movies);
@@ -34,7 +40,7 @@ app.get("/movies", async (req, res) => {
 });
 
 // GET a single movie by title
-app.get("/movies/:title", async (req, res) => {
+app.get("/movies/:title", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const movie = await Movie.findOne({ title: req.params.title }); // Find movie by title
     if (!movie) return res.status(404).json({ message: "Movie not found" });
@@ -45,7 +51,7 @@ app.get("/movies/:title", async (req, res) => {
 });
 
 //  Get genre details by name
-app.get("/genres/:name", async (req, res) => {
+app.get("/genres/:name", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     console.log(`Looking for genre: ${req.params.name}`);
     const movie = await Movie.findOne({ "genre.name": req.params.name });
@@ -59,7 +65,7 @@ app.get("/genres/:name", async (req, res) => {
   }
 });
 
-app.get("/directors/:name", async (req, res) => {
+app.get("/directors/:name", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     console.log(`Received request for director: ${req.params.name}`); // Debugging log
     const movies = await Movie.find({ "director.name": req.params.name });
@@ -82,10 +88,20 @@ app.get("/directors/:name", async (req, res) => {
 app.post("/users", async (req, res) => {
   try {
     const existingUser = await User.findOne({ username: req.body.username });
-    if (existingUser)
+    if (existingUser) {
       return res.status(400).json({ message: "Username already exists" });
+    }
 
-    const newUser = new User(req.body);
+    // 🔐 Hash the password before saving
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    const newUser = new User({
+      username: req.body.username,
+      password: hashedPassword,
+      email: req.body.email,
+      birthday: req.body.birthday
+    });
+
     await newUser.save();
     res.status(201).json(newUser);
   } catch (err) {
@@ -94,7 +110,7 @@ app.post("/users", async (req, res) => {
 });
 
 // Update user info
-app.put("/users/:username", async (req, res) => {
+app.put("/users/:username", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const updatedUser = await User.findOneAndUpdate(
       { username: req.params.username },
@@ -110,10 +126,10 @@ app.put("/users/:username", async (req, res) => {
 });
 
 // Add a movie to user's favorite list
-app.post('/users/:username/movies/:movieId', async (req, res) => {
+app.post('/users/:username/movies/:movieId', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
       console.log('Received request to add movie to favorites');
-      console.log('Username:', req.params.username);
+      console.log('username:', req.params.username);
       console.log('Movie ID:', req.params.movieId);
 
       const updatedUser = await User.findOneAndUpdate(
@@ -137,10 +153,10 @@ app.post('/users/:username/movies/:movieId', async (req, res) => {
 
 
 // Remove a movie from user’s favorite list
-app.delete("/users/:username/movies/:movieId", async (req, res) => {
+app.delete("/users/:username/movies/:movieId", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     console.log("Deleting movie from favorites...");
-    console.log("Username:", req.params.username);
+    console.log("username:", req.params.username);
     console.log("Movie ID:", req.params.movieId);
 
     const movieId = new mongoose.Types.ObjectId(req.params.movieId); // Convert to ObjectId
@@ -165,7 +181,7 @@ app.delete("/users/:username/movies/:movieId", async (req, res) => {
 });
 
 // Deregister a user
-app.delete("/users/:username", async (req, res) => {
+app.delete("/users/:username", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const deletedUser = await User.findOneAndDelete({
       username: req.params.username,
