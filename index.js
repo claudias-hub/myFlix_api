@@ -2,6 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
+const cors = require('cors');
+const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 
 const { Movie, User } = require("./models");
@@ -18,6 +20,7 @@ const port = 8080; // Change if needed
 app.use(bodyParser.json());
 app.use(express.static("public")); // Serve static files /documentation will work automatically
 app.use(morgan("common")); // "common" muestra logs básicos
+app.use(cors());
 
 let auth = require('./auth')(app);
 require('./passport');
@@ -85,45 +88,69 @@ app.get("/directors/:name", passport.authenticate('jwt', { session: false }), as
 });
 
 // Register a new user
-app.post("/users", async (req, res) => {
-  try {
-    const existingUser = await User.findOne({ username: req.body.username });
-    if (existingUser) {
-      return res.status(400).json({ message: "Username already exists" });
+app.post("/users", 
+  [
+    check("username", "Username must be at least 5 characters long").isLength({ min: 5 }),
+    check("username", "Username must be alphanumeric").isAlphanumeric(),
+    check("password", "Password is required").not().isEmpty(),
+    check("email", "Email must be valid").isEmail(),
+  ],
+  async (req, res) => {
+ 
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
     }
 
-    // 🔐 Hash the password before saving
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    try {
+      const existingUser = await User.findOne({ username: req.body.username });
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
 
-    const newUser = new User({
-      username: req.body.username,
-      password: hashedPassword,
-      email: req.body.email,
-      birthday: req.body.birthday
-    });
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-    await newUser.save();
-    res.status(201).json(newUser);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+      const newUser = new User({
+        username: req.body.username,
+        password: hashedPassword,
+        email: req.body.email,
+        birthday: req.body.birthday,
+      });
+
+      await newUser.save();
+      res.status(201).json(newUser);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   }
-});
+);
 
 // Update user info
-app.put("/users/:username", passport.authenticate('jwt', { session: false }), async (req, res) => {
-  try {
-    const updatedUser = await User.findOneAndUpdate(
-      { username: req.params.username },
-      { $set: req.body },
-      { new: true }
-    );
-    if (!updatedUser)
-      return res.status(404).json({ message: "User not found" });
-    res.json(updatedUser);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.put("/users/:username", passport.authenticate('jwt', { session: false }),
+  [
+    check("username", "Username must be at least 5 characters long").isLength({ min: 5 }),
+    check("username", "Username must be alphanumeric").isAlphanumeric(),
+    check("password", "Password is required").not().isEmpty(),
+    check("email", "Email must be valid").isEmail(),
+  ], async (req, res) => {
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+
+    try {
+      const updatedUser = await User.findOneAndUpdate(
+        { username: req.params.username },
+        { $set: req.body },
+        { new: true }
+      );
+      if (!updatedUser)
+        return res.status(404).json({ message: "User not found" });
+      res.json(updatedUser);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+}});
 
 // Add a movie to user's favorite list
 app.post('/users/:username/movies/:movieId', passport.authenticate('jwt', { session: false }), async (req, res) => {
