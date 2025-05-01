@@ -9,13 +9,16 @@ const bcrypt = require('bcryptjs');
 const { Movie, User } = require("./models");
 
 const mongoURI = "mongodb://127.0.0.1:27017/movieDB";
-mongoose
-  .connect(mongoURI)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+
+mongoose.connect('mongodb+srv://db_Admin:22la33la44La@mymockdb.m6rnpn3.mongodb.net/movieDB?retryWrites=true&w=majority&appName=myMockDB', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('Connected to MongoDB Atlas'))
+.catch((error) => console.error('Error connecting to MongoDB Atlas:', error));
 
 const app = express();
-const port = 8080; // Change if needed
+const port = process.env.PORT || 8080;
 
 app.use(bodyParser.json());
 app.use(express.static("public")); // Serve static files /documentation will work automatically
@@ -138,6 +141,11 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
 
+    if (req.user.username !== req.params.username) {
+      return res.status(403).json({ message: "You can only update your own profile" });
+    }
+  
+
     try {
       const updatedUser = await User.findOneAndUpdate(
         { username: req.params.username },
@@ -153,7 +161,16 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
 }});
 
 // Add a movie to user's favorite list
-app.post('/users/:username/movies/:movieId', passport.authenticate('jwt', { session: false }), async (req, res) => {
+app.post('/users/:username/movies/:movieId', passport.authenticate('jwt', { session: false }), 
+  [
+    check('username', 'Username must be provided').notEmpty(),
+    check('movieId', 'Movie ID must be a valid Mongo ID').isMongoId(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
   try {
       console.log('Received request to add movie to favorites');
       console.log('username:', req.params.username);
