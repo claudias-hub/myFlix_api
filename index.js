@@ -1,4 +1,6 @@
 const express = require("express");
+require('dotenv').config();
+
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
@@ -8,14 +10,10 @@ const bcrypt = require('bcryptjs');
 
 const { Movie, User } = require("./models");
 
-const mongoURI = "mongodb://127.0.0.1:27017/movieDB";
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB Atlas'))
+  .catch((error) => console.error('Error connecting to MongoDB Atlas:', error));
 
-mongoose.connect('mongodb+srv://db_Admin:22la33la44La@mymockdb.m6rnpn3.mongodb.net/movieDB?retryWrites=true&w=majority&appName=myMockDB', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB Atlas'))
-.catch((error) => console.error('Error connecting to MongoDB Atlas:', error));
 
 const app = express();
 const port = process.env.PORT || 8080;
