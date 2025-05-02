@@ -138,6 +138,7 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
+    }
 
     if (req.user.username !== req.params.username) {
       return res.status(403).json({ message: "You can only update your own profile" });
@@ -156,7 +157,8 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-}});
+  }
+);
 
 // Add a movie to user's favorite list
 app.post('/users/:username/movies/:movieId', passport.authenticate('jwt', { session: false }), 
