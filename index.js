@@ -6,7 +6,7 @@ const morgan = require("morgan");
 const mongoose = require("mongoose");
 const cors = require('cors');
 const { check, validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
 const { Movie, User } = require("./models");
 
