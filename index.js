@@ -109,7 +109,7 @@ app.post("/users",
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      const hashedPassword = await bcrypt.hash(req.body.password, 10);
+      const hashedPassword = bcrypt.hashSync(req.body.password, 10);
 
       const newUser = new User({
         username: req.body.username,
