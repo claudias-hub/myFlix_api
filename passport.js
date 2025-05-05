@@ -53,7 +53,7 @@ passport.use(
     new JWTStrategy(
       {
         jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-        secretOrKey: superSecretKey_123!, // Use environment variable in real apps
+        secretOrKey: "superSecretKey_123!", // Use environment variable in real apps
       },
       async (jwtPayload, done) => {
         try {
