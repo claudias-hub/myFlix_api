@@ -40,6 +40,10 @@ module.exports = (app) => {
         return res.json({ user, token });
       });
     })(req, res);
-  });  
+  }); 
+  app.get('/test-login-route', (req, res) => {
+    res.send('Login route module is active');
+  });
+   
 };
   
