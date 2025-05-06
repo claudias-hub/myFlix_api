@@ -19,10 +19,15 @@ let generateJWTToken = (user) => {
 module.exports = (app) => {
   app.post("/login", (req, res) => {
     passport.authenticate("local", { session: false }, (error, user, info) => {
+      console.log("Login error:", error);
+      console.log("User found:", user);
+      console.log("Passport info:", info);
+  
       if (error || !user) {
         return res.status(400).json({
           message: "Something is not right",
           user: user,
+          info: info
         });
       }
   
@@ -30,11 +35,11 @@ module.exports = (app) => {
         if (error) {
           return res.send(error);
         }
-
+  
         let token = generateJWTToken(user.toJSON());
         return res.json({ user, token });
       });
     })(req, res);
-  });
+  });  
 };
   

@@ -28,13 +28,13 @@ passport.use(
 
           if (!user) {
             console.log('Incorrect username');
-            return done(null, false, { message: 'Incorrect username or password.' });
+            return done(null, false, { message: 'Incorrect username.' });
           }
 
           const isMatch = await user.validatePassword(password);
           if (!isMatch) {
             console.log('Incorrect password');
-            return done(null, false, { message: 'Incorrect username or password.' });
+            return done(null, false, { message: 'Incorrect password.' });
           }
 
           console.log('Authentication successful');
