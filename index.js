@@ -34,7 +34,11 @@ app.get("/", (req, res) => {
 });
 
 // GET All Movies (from MongoDB)
+<<<<<<< Updated upstream
 app.get("/movies", passport.authenticate('jwt', { session: false }), async (req, res) => {
+=======
+app.get("/movies", (req, res) => {
+>>>>>>> Stashed changes
   try {
     const movies = await Movie.find(); // Fetch all movies
     res.json(movies);
