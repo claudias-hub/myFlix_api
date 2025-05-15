@@ -34,7 +34,7 @@ app.get("/", (req, res) => {
 });
 
 // GET All Movies (from MongoDB)
-app.get("/movies", (req, res) => {
+app.get("/movies", passport.authenticate('jwt', { session: false }), (req, res) => {
   try {
     const movies = await Movie.find(); // Fetch all movies
     res.json(movies);
