@@ -29,7 +29,7 @@ require('./passport');
 const passport = require('passport');
 
 // Homepage
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
   res.send("Welcome to the Movie API!");
 });
 
