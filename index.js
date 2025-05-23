@@ -34,7 +34,7 @@ app.get("/", async (req, res) => {
 });
 
 // GET All Movies (from MongoDB)
-app.get("/movies", async (req, res) => {
+app.get("/movies", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const movies = await Movie.find(); // Fetch all movies
     res.json(movies);
@@ -42,6 +42,7 @@ app.get("/movies", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // GET a single movie by title
 app.get("/movies/:title", passport.authenticate('jwt', { session: false }), async (req, res) => {
