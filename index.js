@@ -9,6 +9,7 @@ const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 
 const { Movie, User } = require("./models");
+const allowedOrigins = ['http://localhost:1234', 'https://movie-api-w67x.onrender.com'];
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB Atlas'))
@@ -21,7 +22,16 @@ const port = process.env.PORT || 8080;
 app.use(bodyParser.json());
 app.use(express.static("public")); // Serve static files /documentation will work automatically
 app.use(morgan("common")); // "common" muestra logs básicos
-app.use(cors());
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
 
 let auth = require('./auth')(app);
 require('./passport');
