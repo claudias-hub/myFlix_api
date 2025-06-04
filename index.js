@@ -9,7 +9,7 @@ const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 
 const { Movie, User } = require("./models");
-const allowedOrigins = ['http://localhost:1234', 'https://movie-api-w67x.onrender.com'];
+const allowedOrigins = ['http://localhost:1234', 'https://movie-api-w67x.onrender.com', 'https://myflix-by-clau.netlify.app'];
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB Atlas'))
@@ -59,6 +59,19 @@ app.get("/movies/:title", passport.authenticate('jwt', { session: false }), asyn
   try {
     const movie = await Movie.findOne({ title: req.params.title }); // Find movie by title
     if (!movie) return res.status(404).json({ message: "Movie not found" });
+    res.json(movie);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET a movie by ID
+app.get("/movies/id/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const movie = await Movie.findById(req.params.id);
+    if (!movie) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
     res.json(movie);
   } catch (err) {
     res.status(500).json({ error: err.message });
