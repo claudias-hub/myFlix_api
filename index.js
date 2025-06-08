@@ -45,12 +45,13 @@ app.get("/", async (req, res) => {
 
 // GET All Movies (from MongoDB)
 app.get("/movies", passport.authenticate('jwt', { session: false }), async (req, res) => {
-  try {
-    const movies = await Movie.find(); // Fetch all movies
-    res.json(movies);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const moviesPage = allMovies.slice(startIndex, endIndex);
+  res.json(moviesPage);
 });
 
 
@@ -161,6 +162,7 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log(errors.array());
       return res.status(422).json({ errors: errors.array() });
     }
 
