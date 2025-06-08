@@ -3,6 +3,7 @@ const passportJWT = require('passport-jwt');
 
 const LocalStrategy = require('passport-local').Strategy;
 const JWTStrategy = passportJWT.Strategy;
+const jwtSecret = process.env.JWT_SECRET;
 const ExtractJWT = passportJWT.ExtractJwt;
 
 const bcrypt = require('bcrypt');
@@ -53,7 +54,7 @@ passport.use(
     new JWTStrategy(
       {
         jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-        secretOrKey: "superSecretKey_123!", // Use environment variable in real apps
+        secretOrKey: jwtSecret, // Use environment variable in real apps
       },
       async (jwtPayload, done) => {
         try {

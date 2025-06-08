@@ -45,13 +45,16 @@ app.get("/", async (req, res) => {
 
 // GET All Movies (from MongoDB)
 app.get("/movies", passport.authenticate('jwt', { session: false }), async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
-  const moviesPage = allMovies.slice(startIndex, endIndex);
-  res.json(moviesPage);
+    const movies = await Movie.find().skip(skip).limit(limit);
+    res.json(movies);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 
