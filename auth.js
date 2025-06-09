@@ -10,7 +10,7 @@ const router = express.Router();
 let generateJWTToken = (user) => {
   return jwt.sign(user, jwtSecret, {
     subject: user.username, // This is the username you’re encoding in the JWT
-    expiresIn: "7d", // This specifies that the token will expire in 7 days
+    expiresIn: "30d", // This specifies that the token will expire in 7 days
     algorithm: "HS256", // This is the algorithm used to “sign” or encode the values of the JWT
   });
 };
@@ -41,6 +41,7 @@ module.exports = (app) => {
       });
     })(req, res);
   }); 
+  
   app.get('/test-login-route', (req, res) => {
     res.send('Login route module is active');
   });
