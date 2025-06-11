@@ -194,10 +194,18 @@ app.post('/users/:username/movies/:movieId', passport.authenticate('jwt', { sess
   [
     check('username', 'Username must be provided').notEmpty(),
     check('movieId', 'Movie ID must be a valid Mongo ID').isMongoId(),
-  ],
+  ], 
   async (req, res) => {
+    console.log('=== BACKEND DEBUGGING ===');
+    console.log('Username received:', req.params.username);
+    console.log('MovieId received:', req.params.movieId);
+    console.log('MovieId type:', typeof req.params.movieId);
+    console.log('MovieId length:', req.params.movieId.length);
+    console.log('=== END BACKEND DEBUGGING ===');
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ ERRORES DE VALIDACIÓN:', errors.array());
       return res.status(422).json({ errors: errors.array() });
     }
   try {
