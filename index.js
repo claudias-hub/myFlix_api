@@ -9,7 +9,7 @@ const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 
 const { Movie, User } = require("./models");
-const allowedOrigins = ['http://localhost:1234', 'https://movie-api-w67x.onrender.com', 'https://myflix-by-clau.netlify.app'];
+const allowedOrigins = ['http://localhost:4200', 'http://localhost:1234', 'https://movie-api-w67x.onrender.com', 'https://myflix-by-clau.netlify.app'];
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB Atlas'))
@@ -25,11 +25,21 @@ app.use(morgan("common")); // "common" muestra logs básicos
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow non-browser tools or same-origin (like curl/Postman) where origin may be undefined
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+      return callback(null, true);
     }
+    return callback(new Error('Not allowed by CORS'));
+  }
+}));
+
+// Handle preflight for all routes BEFORE auth middleware
+app.options('*', cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
   }
 }));
 
