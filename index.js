@@ -9,7 +9,7 @@ const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 
 const { Movie, User } = require("./models");
-const allowedOrigins = ['http://localhost:4200', 'http://localhost:1234', 'https://movie-api-w67x.onrender.com', 'https://myflix-by-clau.netlify.app'];
+const allowedOrigins = ['http://localhost:4200', 'http://localhost:1234', 'https://movie-api-w67x.onrender.com', 'https://myflix-by-clau.netlify.app', 'https://claudias-hub.github.io'];
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB Atlas'))
