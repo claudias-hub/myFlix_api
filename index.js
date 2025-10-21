@@ -169,7 +169,7 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
   [
     check("username", "Username must be at least 5 characters long").isLength({ min: 5 }),
     check("username", "Username must be alphanumeric").isAlphanumeric(),
-    check("password", "Password is required").not().isEmpty(),
+    check("password", "Password is required").optional(), // Make password optional for updates
     check("email", "Email must be valid").isEmail(),
   ], async (req, res) => {
 
@@ -185,11 +185,24 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
   
 
     try {
+      // Build update object safely
+      const updateData = {
+        username: req.body.username,
+        email: req.body.email,
+        birthday: req.body.birthday
+      };
+
+      // Only hash and add password if provided
+      if (req.body.password) {
+        updateData.password = bcrypt.hashSync(req.body.password, 10);
+      }
+
       const updatedUser = await User.findOneAndUpdate(
         { username: req.params.username },
-        { $set: req.body },
+        { $set: updateData },
         { new: true }
       );
+      
       if (!updatedUser)
         return res.status(404).json({ message: "User not found" });
       res.json(updatedUser);
