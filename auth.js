@@ -1,11 +1,11 @@
 const jwtSecret = process.env.JWT_SECRET;
-
-const jwt = require("jsonwebtoken"),
-  passport = require("passport");
+const jwt = require("jsonwebtoken");
+const passport = require("passport");
 
 require("./passport");
-const express = require("express");
-const router = express.Router();
+
+// const express = require("express");
+// const router = express.Router();
 
 let generateJWTToken = (user) => {
   return jwt.sign(user, jwtSecret, {
@@ -19,9 +19,10 @@ let generateJWTToken = (user) => {
 module.exports = (app) => {
   app.post("/login", (req, res) => {
     passport.authenticate("local", { session: false }, (error, user, info) => {
-      console.log("Login error:", error);
-      console.log("User found:", user);
-      console.log("Passport info:", info);
+      console.log("Login attempt:");
+      console.log("- Error:", error);
+      console.log("- User:", user);
+      console.log("- Info:", info);
   
       if (error || !user) {
         return res.status(400).json({

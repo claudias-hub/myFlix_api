@@ -19,10 +19,12 @@ mongoose.connect(process.env.MONGO_URI)
 const app = express();
 const port = process.env.PORT || 8080;
 
+// Basic middleware FIRST
 app.use(bodyParser.json());
-app.use(express.static("public")); // Serve static files /documentation will work automatically
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan("common")); // "common" muestra logs básicos
 
+//CORS middleware BEFORE auth
 app.use(cors({
   origin: function (origin, callback) {
     // Allow non-browser tools or same-origin (like curl/Postman) where origin may be undefined
@@ -30,23 +32,22 @@ app.use(cors({
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));
-  }
+  },
+  credentials: true
 }));
 
-// Handle preflight for all routes BEFORE auth middleware
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  }
-}));
+//Handle preflight requests
+app.options('*', cors());
 
+// NOW load auth (which adds /login route)
 let auth = require('./auth')(app);
 require('./passport');
 
 const passport = require('passport');
+
+//Static files
+app.use(express.static("public"));
+
 
 // Homepage
 app.get("/", async (req, res) => {
