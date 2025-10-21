@@ -9,7 +9,12 @@ const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
 
 const { Movie, User } = require("./models");
-const allowedOrigins = ['http://localhost:4200', 'http://localhost:1234', 'https://movie-api-w67x.onrender.com', 'https://myflix-by-clau.netlify.app', 'https://claudias-hub.github.io'];
+const allowedOrigins = [
+  'http://localhost:4200', 
+  'http://localhost:1234', 
+  'https://movie-api-w67x.onrender.com', 
+  'https://myflix-by-clau.netlify.app', 
+  'https://claudias-hub.github.io'];
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB Atlas'))
@@ -168,15 +173,13 @@ app.post("/users",
 // Update user info
 app.put("/users/:username", passport.authenticate('jwt', { session: false }),
   [
-    check("username", "Username must be at least 5 characters long").isLength({ min: 5 }),
-    check("username", "Username must be alphanumeric").isAlphanumeric(),
     check("password", "Password is required").optional(), // Make password optional for updates
     check("email", "Email must be valid").isEmail(),
   ], async (req, res) => {
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log(errors.array());
+      console.log('Validation errors:', errors.array());
       return res.status(422).json({ errors: errors.array() });
     }
 
@@ -188,7 +191,6 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
     try {
       // Build update object safely
       const updateData = {
-        username: req.body.username,
         email: req.body.email,
         birthday: req.body.birthday
       };
