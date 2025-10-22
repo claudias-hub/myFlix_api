@@ -1,3 +1,5 @@
+// index.js
+
 const express = require("express");
 require('dotenv').config();
 
@@ -175,6 +177,7 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
   [
     check("password", "Password is required").optional(), // Make password optional for updates
     check("email", "Email must be valid").isEmail(),
+    check("birthday", "Birthday must be a valid date").optional().isISO8601(),
   ], async (req, res) => {
 
     const errors = validationResult(req);
