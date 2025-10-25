@@ -18,6 +18,10 @@ const allowedOrigins = [
   'https://myflix-by-clau.netlify.app', 
   'https://claudias-hub.github.io'];
 
+  /**
+ * Connect to MongoDB Atlas using MONGO_URI from environment.
+ * Logs a confirmation on success and prints an error on failure.
+ */
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB Atlas'))
   .catch((error) => console.error('Error connecting to MongoDB Atlas:', error));
@@ -26,12 +30,19 @@ mongoose.connect(process.env.MONGO_URI)
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Basic middleware FIRST
+/**
+ * Global middleware:
+ * - bodyParser: parse JSON and URL-encoded payloads
+ * -morgan: request logging
+ */
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan("common")); // "common" muestra logs básicos
 
-//CORS middleware BEFORE auth
+/**
+ * CORS middleware BEFORE auth to allow configured origins only.
+ * Allows tools like curl/Postman (no origin).
+ */
 app.use(cors({
   origin: function (origin, callback) {
     // Allow non-browser tools or same-origin (like curl/Postman) where origin may be undefined
@@ -57,11 +68,31 @@ app.use(express.static("public"));
 
 
 // Homepage
+/**
+ * @route GET /
+ * @summary Health/welcome endpoint
+ * @description Returns a welcome message confirming the API is reachable.
+ * @returns {string} 200 - Plain text welcome message
+ */
 app.get("/", async (req, res) => {
   res.send("Welcome to the Movie API!");
 });
 
+// Favicon route to prevent 404 errors in logs
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+
 // GET All Movies (from MongoDB)
+/**
+ * @route GET /movies
+ * @summary Get a paginated list of movies
+ * @security JWT
+ * @description Returns movies with optional pagination via `page` and `limit` query params.
+ * @param {number} [req.query.page] - Page number (default 1)
+ * @param {number} [req.query.limit] - Page size (default 20)
+ * @returns {Movie[]} 200 - Array of movie documents
+ * @returns {object} 500 - Error object
+ */
 app.get("/movies", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -77,6 +108,15 @@ app.get("/movies", passport.authenticate('jwt', { session: false }), async (req,
 
 
 // GET a single movie by title
+/**
+ * @route GET /movies/:title
+ * @summary Get a single movie by title
+ * @security JWT
+ * @param {string} req.params.title - Movie title
+ * @returns {Movie} 200 - Movie document
+ * @returns {object} 404 - Not found message
+ * @returns {object} 500 - Error object
+ */
 app.get("/movies/:title", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const movie = await Movie.findOne({ title: req.params.title }); // Find movie by title
@@ -88,6 +128,15 @@ app.get("/movies/:title", passport.authenticate('jwt', { session: false }), asyn
 });
 
 // GET a movie by ID
+/**
+ * @route GET /movies/id/:id
+ * @summary Get a single movie by MongoDB ObjectId
+ * @security JWT
+ * @param {string} req.params.id - Movie ObjectId
+ * @returns {Movie} 200 - Movie document
+ * @returns {object} 404 - Not found message
+ * @returns {object} 500 - Error object
+ */
 app.get("/movies/id/:id", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const movie = await Movie.findById(req.params.id);
@@ -101,6 +150,15 @@ app.get("/movies/id/:id", passport.authenticate('jwt', { session: false }), asyn
 });
 
 //  Get genre details by name
+/**
+ * @route GET /genres/:name
+ * @summary Get genre details by genre name
+ * @security JWT
+ * @param {string} req.params.name - Genre name
+ * @returns {object} 200 - Genre subdocument
+ * @returns {object} 404 - Not found message
+ * @returns {object} 500 - Error object
+ */
 app.get("/genres/:name", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     console.log(`Looking for genre: ${req.params.name}`);
@@ -115,6 +173,16 @@ app.get("/genres/:name", passport.authenticate('jwt', { session: false }), async
   }
 });
 
+// Get director details by name
+/**
+ * @route GET /directors/:name
+ * @summary Get movies by a director's name
+ * @security JWT
+ * @param {string} req.params.name - Director name
+ * @returns {Movie[]} 200 - Array of movies directed by given director
+ * @returns {object} 404 - Not found message
+ * @returns {object} 500 - Error object
+ */
 app.get("/directors/:name", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     console.log(`Received request for director: ${req.params.name}`); // Debugging log
@@ -135,6 +203,19 @@ app.get("/directors/:name", passport.authenticate('jwt', { session: false }), as
 });
 
 // Register a new user
+/**
+ * @route POST /users
+ * @summary Register a new user
+ * @description Validates input, hashes password, and creates a user.
+ * @param {string} req.body.username - Alphanumeric username (min 5 chars)
+ * @param {string} req.body.password - Plain text password
+ * @param {string} req.body.email - Valid email
+ * @param {string} [req.body.birthday] - ISO date string (optional)
+ * @returns {User} 201 - Created user document
+ * @returns {object} 400 - Username exists
+ * @returns {object} 422 - Validation errors
+ * @returns {object} 500 - Error object
+ */
 app.post("/users", 
   [
     check("username", "Username must be at least 5 characters long").isLength({ min: 5 }),
@@ -173,6 +254,21 @@ app.post("/users",
 );
 
 // Update user info
+/**
+ * @route PUT /users/:username
+ * @summary Update an existing user (self only)
+ * @security JWT
+ * @description Allows updating email, birthday, and password (optional).
+ * @param {string} req.params.username - Username to update
+ * @param {string} [req.body.password] - New password (optional)
+ * @param {string} req.body.email - New email
+ * @param {string} [req.body.birthday] - New ISO date (optional)
+ * @returns {User} 200 - Updated user document
+ * @returns {object} 403 - Forbidden if not self
+ * @returns {object} 404 - User not found
+ * @returns {object} 422 - Validation errors
+ * @returns {object} 500 - Error object
+ */
 app.put("/users/:username", passport.authenticate('jwt', { session: false }),
   [
     check("password", "Password is required").optional(), // Make password optional for updates
@@ -219,6 +315,17 @@ app.put("/users/:username", passport.authenticate('jwt', { session: false }),
 );
 
 // Add a movie to user's favorite list
+/**
+ * @route POST /users/:username/movies/:movieId
+ * @summary Add a movie to a user's favorites
+ * @security JWT
+ * @param {string} req.params.username - Username
+ * @param {string} req.params.movieId - Movie ObjectId
+ * @returns {User} 200 - Updated user document with favorites
+ * @returns {object} 404 - User not found
+ * @returns {object} 422 - Validation errors
+ * @returns {object} 500 - Error object
+ */
 app.post('/users/:username/movies/:movieId', passport.authenticate('jwt', { session: false }), 
   [
     check('username', 'Username must be provided').notEmpty(),
@@ -263,6 +370,16 @@ app.post('/users/:username/movies/:movieId', passport.authenticate('jwt', { sess
 
 
 // Remove a movie from user’s favorite list
+/**
+ * @route DELETE /users/:username/movies/:movieId
+ * @summary Remove a movie from a user's favorites
+ * @security JWT
+ * @param {string} req.params.username - Username
+ * @param {string} req.params.movieId - Movie ObjectId
+ * @returns {User} 200 - Updated user document
+ * @returns {object} 404 - User not found
+ * @returns {object} 500 - Error object
+ */
 app.delete("/users/:username/movies/:movieId", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     console.log("Deleting movie from favorites...");
@@ -291,6 +408,15 @@ app.delete("/users/:username/movies/:movieId", passport.authenticate('jwt', { se
 });
 
 // Deregister a user
+/**
+ * @route DELETE /users/:username
+ * @summary Delete (deregister) a user by username
+ * @security JWT
+ * @param {string} req.params.username - Username
+ * @returns {object} 200 - Success message
+ * @returns {object} 404 - User not found
+ * @returns {object} 500 - Error object
+ */
 app.delete("/users/:username", passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const deletedUser = await User.findOneAndDelete({
@@ -304,17 +430,25 @@ app.delete("/users/:username", passport.authenticate('jwt', { session: false }),
   }
 });
 
+/**
+ * @route GET /documentation
+ * @summary Serve static API documentation page
+ * @returns {HTML} 200 - Documentation file
+ */
 app.get("/documentation", (req, res) => {
   res.sendFile(__dirname + "/public/documentation.html");
 });
 
 // Middleware de manejo de errores
+/**
+ * ADDED: Global error handler for uncaught errors.
+ */
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send("Something went wrong! Please try again later.");
 });
 
-// Iniciar servidor
+// Start server
 app.listen(port, () => {
   console.log(`App is running on http://localhost:${port}`);
 });

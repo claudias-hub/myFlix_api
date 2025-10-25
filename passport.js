@@ -1,3 +1,5 @@
+// passport.js
+
 const passport = require('passport');
 const passportJWT = require('passport-jwt');
 
@@ -11,9 +13,11 @@ const Models = require('./models.js');
 const Users = Models.User
 
 
-
-
-// Local Strategy: Username + Password authentication
+/**
+ * ADDED: Local Strategy for username/password authentication.
+ * Looks up user by username and verifies password using model's validatePassword.
+ * On success, `done(null, user)`; on failure, `done(null, false, { message })`.
+ */
 passport.use(
    new LocalStrategy(
       {
@@ -49,7 +53,12 @@ passport.use(
  );
 
 
-// JWT Strategy: Token authentication
+
+/**
+ * ADDED: JWT Strategy for Bearer token authentication.
+ * Extracts token from Authorization header, verifies, and loads user by _id in payload.
+ * On success, `done(null, user)`; if not found, `done(null, false)`.
+ */
 passport.use(
     new JWTStrategy(
       {
