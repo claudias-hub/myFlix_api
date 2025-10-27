@@ -8,7 +8,7 @@
   },
   "opts": {
     "encoding": "utf8",
-    "destination": "./out",
+    "destination": "./docs",
     "recurse": true,
     "verbose": true,
     "tutorials": "./public"

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Tutorial: documentation</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Tutorial: documentation</h1>
+
+    <section>
+
+<header>
+    
+
+    <h2>documentation</h2>
+</header>
+
+<article>
+    <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie API Documentation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        padding: 20px;
+        background-color: #f4f4f4;
+      }
+      h1 {
+        color: #333;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+      }
+      th,
+      td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+      }
+      th {
+        background-color: #333;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Movie API Documentation</h1>
+    <p>
+      Welcome to the Movie API documentation. This API allows users to access
+      information about movies, directors, and genres.
+    </p>
+
+    <h2>API Endpoints</h2>
+    <table>
+      <tr>
+        <th>Request</th>
+        <th>URL</th>
+        <th>Response</th>
+        <th>Request Body</th>
+        <th>Response Format Example</th>
+      </tr>
+      <tr>
+        <td>Get all movies</td>
+        <td><code>GET /movies</code></td>
+        <td>Returns a list of all movies (JSON)</td>
+        <td>No body required</td>
+        <td>[
+          {
+            "title": "The Shawshank Redemption",
+            "director": "Frank Darabont",
+            "genre": "Drama",
+            "year": 1994
+          },
+          ...
+        ]</td>
+      </tr>
+      <tr>
+        <td>Get a single movie by title</td>
+        <td><code>GET /movies/:title</code></td>
+        <td>
+          Returns details about a specific movie (description, genre, director,
+          image, featured)
+        </td>
+        <td>No body required</td>
+        <td>{
+          "title": "Inception",
+          "director": "Christopher Nolan",
+          "genre": "Science Fiction",
+          "year": 2010,
+        }</td>
+      </tr>
+      <tr>
+        <td>Get genre details by name</td>
+        <td><code>GET /genres/:name</code></td>
+        <td>Returns genre description</td>
+        <td>No body required</td>
+        <td>{
+          "genre": "Drama",
+          "movies": [
+            {
+              "title": "The Shawshank Redemption",
+              "director": "Frank Darabont",
+              "year": 1994
+            },
+            ...
+          ]
+        }</td>
+      </tr>
+      <tr>
+        <td>Get director details by name</td>
+        <td><code>GET /directors/:name</code></td>
+        <td>Returns director bio, birth year, and death year</td>
+        <td>No body required</td>
+        <td>{
+          "director": "Christopher Nolan",
+          "movies": [
+            {
+              "title": "Inception",
+              "genre": "Science Fiction",
+              "year": 2010
+            },
+            ...
+          ]
+        }</td>
+      </tr>
+      <tr>
+        <td>Register a new user</td>
+        <td><code>POST /users</code></td>
+        <td>Adds a new user to the database</td>
+        <td>{
+          "username": "new_user",
+          "email": "newuser@example.com",
+          "password": "securepassword"
+        }</td>
+        <td>{
+          "message": "User registered successfully!",
+          "user": {
+            "username": "new_user",
+            "email": "newuser@example.com",
+            "password": "securepassword"
+          }
+        }</td>
+      </tr>
+      <tr>
+        <td>Update user info (username)</td>
+        <td><code>PUT /users/:username</code></td>
+        <td>Updates user information</td>
+        <td>{
+          "email": "updated_email@example.com",
+          "password": "newpassword"
+        }</td>
+        <td>{
+          "message": "User new_user has been updated.",
+          "user": {
+            "username": "new_user",
+            "email": "updated_email@example.com",
+            "password": "newpassword"
+          }
+        }</td>
+      </tr>
+      <tr>
+        <td>Add a movie to user’s favorite list</td>
+        <td><code>POST /users/:username/movies/:movieID</code></td>
+        <td>Confirms that a movie was added to favorites</td>
+        <td>No body required</td>
+        <td>{
+          "message": "Movie 'Inception' added to new_user's favorites."
+        }</td>
+      </tr>
+      <tr>
+        <td>Remove a movie from user’s favorite list</td>
+        <td><code>DELETE /users/:username/movies/:movieID</code></td>
+        <td>Confirms that a movie was removed from favorites</td>
+        <td>No body required</td>
+        <td>{
+          "message": "Movie 'Inception' removed from new_user's favorites."
+        }</td>
+      </tr>
+      <tr>
+        <td>Deregister a user</td>
+        <td><code>DELETE /users/:username</code></td>
+        <td>Confirms that the user account was deleted</td>
+        <td>No body required</td>
+        <td>{
+          "message": "User new_user has been removed."
+        }</td>
+      </tr>
+    </table>
+  </body>
+</html>
+
+</article>
+
+</section>
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Tutorials</h3><ul><li><a href="tutorial-documentation.html">documentation</a></li></ul><h3>Global</h3><ul><li><a href="global.html#generateJWTToken">generateJWTToken</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Mon Oct 27 2025 14:29:34 GMT+0100 (Central European Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

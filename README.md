@@ -5,8 +5,6 @@ This is a RESTful API built with Node.js, Express, and MongoDB for managing a mo
 ## Live Demo
 - https://movie-api-w67x.onrender.com
 
----
-
 ## Features
 - User registration and profile update
 - Password hashing with bcrypt
@@ -28,72 +26,72 @@ This is a RESTful API built with Node.js, Express, and MongoDB for managing a mo
 
 ## Handoff / Setup Manual
 
-- Prerequisites
-  - Node.js 18+ and npm
-  - MongoDB Atlas (or local MongoDB)
+### Prerequisites
+- Node.js 18+ and npm
+- MongoDB Atlas (or local MongoDB)
 
-- Environment
-  - Create a `.env` file:
-    
-    MONGODB_URI=<your-connection-string>
-    JWT_SECRET=<your-secret>
-    PORT=8080
-    
-  - Ensure the Render environment variables match the above.
+### Environment
+Create a `.env` file:
 
-- Install & Run (local)
-  git clone https://github.com/claudias-hub/myFlix_api.git
-  cd myFlix_api
-  npm install
-  npm start         # or: npm run dev
+```bash
+MONGO_URI=<your-connection-string>
+JWT_SECRET=<your-secret>
+PORT=8080
+```
 
-* API will run on http://localhost:8080/ (or the port you set).
+Ensure the Render environment variables match the above.
 
-* Documentation
-JSDoc output (after generation): ./out/index.html
-See “Docs (JSDoc)” below for generation steps once comments are added.
+## Install & Run (local)
 
-* Testing
-Use Postman or curl to verify endpoints.
-
-- Example:
-curl http://localhost:8080/movies -H "Authorization: Bearer <token>"
-
-* Known Issues / TODO
-Add rate limiting on /login
-Add more detailed validation error responses
-
-* Endpoints
-Method	Endpoint	Description
-POST	/users	    Register a new user
-POST	/login   	Login a user and receive JWT
-GET	   /movies	    Return list of all movies (auth required)
-GET	  /movies/:title	Get details of a specific movie
-GET	/genres/:name	Get info about a genre
-GET	/directors/:name	Get movies by a specific director
-PUT	/users/:username	Update user information
-POST	/users/:username/movies/:movieId	Add a movie to favorites
-DELETE	/users/:username/movies/:movieId	Remove a movie from favorites
-DELETE	/users/:username	Delete a user account
-
-
-* Getting Started (Locally)
+```bash
 git clone https://github.com/claudias-hub/myFlix_api.git
 cd myFlix_api
 npm install
-npm start
+npm start    # or: npm run dev
+```
 
-* Docs (JSDoc)
-- Install JSDoc:
-npm install -g jsdoc
-# or as a dev dependency:
-# npm i -D jsdoc
+API will run on http://localhost:8080/ (or the port you set).
 
-- (Optional) Create jsdoc.json to configure include/exclude, source paths, etc.
+## Documentation
+JSDoc output (after generation): ./out/index.html
+GitHub Pages: https://claudias-hub.github.io/myFlix_api/
 
-- Generate:
-jsdoc ./ -r
-# or:
-# jsdoc yourEntryFile.js
-Open:
-out/index.html
+### Generate docs:
+
+```bash
+npm run docs
+# then open:
+docs/index.html
+```
+
+### Testing
+Use Postman or curl to verify endpoints:
+
+```bash
+curl http://localhost:8080/movies -H "Authorization: Bearer <token>"
+```
+
+## Endpoints (fetch-api-data.ts):
+### Public:
+- POST /users — userRegistration(userDetails)
+- POST /login — userLogin(userDetails)
+### Protected (send Authorization: Bearer <token>):
+- GET /movies — getAllMovies()
+- GET /movies/:title — getMovieByTitle(title)
+- GET /genres/:name — getGenreByName(name)
+- GET /directors/:name — getDirectorByName(name)
+- GET /users/:username — getUser(username)
+- PUT /users/:username — editUser(username, updateData)
+- GET /users/:username/movies — getFavoriteMovies(username)
+- POST /users/:username/movies/:movieId — addFavoriteMovie(username, movieId) - Add a movie to favorites
+- DELETE /users/:username/movies/:movieId — removeFavoriteMovie(username, movieId) - Remove a movie from favorites
+- DELETE /users/:username — deleteUser(username)
+
+## Known Issues / TODO
+Add rate limiting on /login
+Add more detailed validation error responses
+
+## AI Use Declaration
+Parts of this project’s documentation and code comments were drafted with assistance from an AI assistant (Abacus.AI ChatLLM Teams).
+
+
