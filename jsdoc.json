@@ -11,7 +11,9 @@
     "destination": "./docs",
     "recurse": true,
     "verbose": true,
-    "tutorials": "./public"
+    "tutorials": "./public",
+    "readme": "./README.md"
+    
   },
   "templates": {
     "cleverLinks": true,
