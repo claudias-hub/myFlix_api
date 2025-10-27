@@ -53,16 +53,18 @@ npm start    # or: npm run dev
 API will run on http://localhost:8080/ (or the port you set).
 
 ## Documentation
-JSDoc output (after generation): ./out/index.html
+JSDoc output (after generation): ./docs/index.html
 GitHub Pages: https://claudias-hub.github.io/myFlix_api/
 
-### Generate docs:
+## Generate docs:
 
 ```bash
 npm run docs
-# then open:
-docs/index.html
 ```
+
+### then open:
+docs/index.html
+
 
 ### Testing
 Use Postman or curl to verify endpoints:

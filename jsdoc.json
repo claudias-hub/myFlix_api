@@ -4,7 +4,7 @@
   "source": {
     "include": ["index.js", "auth.js", "passport.js", "models.js"],
     "includePattern": ".+\\.js(doc|x)?$",
-    "excludePattern": "(^|\\/|\\\\)(node_modules|movie_front|out|public)\\/|(^|\\/|\\\\)\\.git"
+    "excludePattern": "(^|\\/|\\\\)(node_modules|movie_front|docs|public)\\/|(^|\\/|\\\\)\\.git"
   },
   "opts": {
     "encoding": "utf8",
