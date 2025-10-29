@@ -89,6 +89,9 @@ curl http://localhost:8080/movies -H "Authorization: Bearer <token>"
 - DELETE /users/:username/movies/:movieId — removeFavoriteMovie(username, movieId) - Remove a movie from favorites
 - DELETE /users/:username — deleteUser(username)
 
+## Kanban board
+GitHub Projects: https://github.com/users/claudias-hub/projects/1/views/1
+
 ## Known Issues / TODO
 Add rate limiting on /login
 Add more detailed validation error responses
